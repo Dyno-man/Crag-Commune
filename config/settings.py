@@ -10,6 +10,7 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS",
 
 INSTALLED_APPS = [
     "accounts",
+    "community",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

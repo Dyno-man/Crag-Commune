@@ -2,7 +2,7 @@
 
 A homegrown Chattanooga climbing community with shareable session plans: find warmups near your project, organize an outing, and meet people to climb with.
 
-**Status: early scaffold.** The local Django foundation has a health endpoint. Community and planner features do not exist yet, and production deployment has not been verified.
+**Status: local prototype.** Django has pseudonymous accounts and member-hosted Stone Fort outings with join requests and private meetup details. The reviewed climbing planner and production deployment do not exist yet.
 
 ## Local development
 
@@ -14,6 +14,8 @@ A homegrown Chattanooga climbing community with shareable session plans: find wa
 Use `docker compose run --rm web python manage.py check` for Django checks and `docker compose run --rm web python manage.py test` for tests. After model changes, create migrations with `docker compose run --rm web python manage.py makemigrations` and apply them with the migration command above. Stop services with `docker compose down`; the named PostgreSQL volume remains. This Compose setup is for local development only. VPS deployment, TLS, backups, and an isolated restore are tracked in [issue #3](https://github.com/Dyno-man/Crag-Commune/issues/3).
 
 The account scaffold uses a custom user model. Start it with a fresh local database volume; a volume created by the earlier health-only scaffold has Django's original user migration history and is not migrated by this slice. Keep any existing volume until its contents have been reviewed. Password recovery, signup rate limits, and public deployment remain open work.
+
+The local outing board is at `/outings/`. Hosts can post a dated outing, accept or decline requests, and keep meetup details visible to accepted members. Outings do not provide reviewed route, trail, or access guidance. Cancellation, material-change notifications, abuse limits, and a production-ready moderation flow remain open work.
 
 ## Start here
 

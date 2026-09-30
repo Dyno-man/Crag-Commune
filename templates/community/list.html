@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Stone Fort outings | Crag Commune{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">Stone Fort</p><h1>Find your next session.</h1><p>Join a member-hosted outing. Climbing plans and access details are still being reviewed.</p></div>
+  {% if user.is_authenticated %}<a class="button" href="{% url 'community:create' %}">Host an outing</a>{% endif %}
+</section>
+<div class="outing-list">
+  {% for outing in outings %}
+    <article class="outing-card">
+      <p class="eyebrow">{{ outing.starts_at|date:"D, M j" }} · {{ outing.starts_at|date:"g:i A" }} ET</p>
+      <h2><a href="{% url 'community:detail' outing.pk %}">{{ outing.title }}</a></h2>
+      <p>{{ outing.description|truncatechars:180 }}</p>
+      <div class="card-meta"><span>Hosted by {{ outing.host.username }}</span><span>{{ outing.spaces_left }} spaces left</span></div>
+    </article>
+  {% empty %}
+    <div class="empty-state"><h2>No upcoming outings yet.</h2><p>Be the first to invite people out to Stone Fort.</p>{% if user.is_authenticated %}<a class="button" href="{% url 'community:create' %}">Host an outing</a>{% else %}<a href="{% url 'accounts:signup' %}">Join to host one</a>{% endif %}</div>
+  {% endfor %}
+</div>
+{% endblock %}
