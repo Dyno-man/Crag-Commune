@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cancel outing | Crag Commune{% endblock %}
+{% block content %}
+<section class="form-layout">
+  <div class="form-intro">
+    <p class="eyebrow">Host action</p>
+    <h1>Cancel this outing?</h1>
+    <p>{{ outing.title }}</p>
+    <p>It will leave the upcoming board. Accepted members will see an in-app notice, and nobody new can join.</p>
+  </div>
+  <div class="form-card">
+    <h2>Notify accepted members</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% include "accounts/form_fields.html" with form=form %}
+      <p class="small-note">Only the host and members accepted when you cancel can see this note.</p>
+      <button class="button" type="submit">Confirm cancellation</button>
+    </form>
+    <p class="form-foot"><a href="{% url 'community:detail' outing.pk %}">Keep this outing</a></p>
+  </div>
+</section>
+{% endblock %}

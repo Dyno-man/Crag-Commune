@@ -59,3 +59,12 @@ class OutingForm(forms.ModelForm):
         if commit:
             outing.save()
         return outing
+
+
+class CancellationForm(forms.Form):
+    note = forms.CharField(
+        label="Note to accepted members (optional)",
+        max_length=280,
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
