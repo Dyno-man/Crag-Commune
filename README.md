@@ -16,6 +16,7 @@ Use `docker compose run --rm web python manage.py check` for Django checks and `
 ## Start here
 
 - [Full project plan](docs/planning/PROJECT_PLAN.md)
+- [Stone Fort pilot scope and evidence log](docs/planning/PILOT_SCOPE.md)
 - [Readable Word companion](docs/planning/Crag_Commune_Project_Plan.docx)
 - [GitHub milestones and issue index](docs/planning/GITHUB.md)
 - [Roadmap and implementation backlog](docs/planning/ROADMAP.md)
@@ -25,7 +26,7 @@ Use `docker compose run --rm web python manage.py check` for Django checks and `
 
 ## Proposed first release
 
-A mobile-friendly community with pseudonymous profiles, dated outings, join requests, discussion, and basic moderation. The first planner covers one locally reviewed Stone Fort sector, with structured preferences, a fixed project, and an original downloadable PNG. Other Chattanooga areas can support community posts before automated planning is available.
+A mobile-friendly community with pseudonymous profiles, dated outings, join requests, discussion, and basic moderation. The owner wants all of Stone Fort as the pilot area. The planner opens only for connected sections with reviewed data and paths, with structured preferences, a fixed project, and an original downloadable PNG. Other Chattanooga areas can support community posts before automated planning is available.
 
 Proposed stack: Django, PostgreSQL, and Docker Compose on an existing VPS. Optional model-assisted input and explanations sit around a deterministic planner. Core planning works without model calls.
 

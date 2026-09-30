@@ -15,7 +15,7 @@ This is a proposed sequence. Items are not implemented. Data permission and loca
 
 | ID | Epic | Priority | Dependencies |
 | --- | --- | --- | --- |
-| E01 | [Confirm the pilot sector and local community needs](../issues/E01.md) | P0 | None |
+| E01 | [Confirm Stone Fort pilot scope and local community needs](../issues/E01.md) | P0 | None |
 | E02 | [Audit data rights and assemble a reviewed pilot catalog](../issues/E02.md) | P0 | E01 |
 | E03 | [Scaffold the application and prove Docker deployment and restoration](../issues/E03.md) | P0 | None |
 | E04 | [Build pseudonymous profiles and joinable climbing outings](../issues/E04.md) | P0 | E03 |
@@ -28,7 +28,7 @@ Split each epic into focused implementation issues as it becomes ready. Checklis
 
 ## Deferred work
 
-- Additional Stone Fort sectors, followed by areas with reviewed data and maintainers.
+- Additional reviewed Stone Fort sections toward the whole-crag goal, followed by areas with reviewed data and maintainers.
 - Rope-climbing planning with separate equipment and eligibility requirements.
 - Deeper conditions integration, subject to owner agreement.
 - Direct messages, notification email, and richer member controls based on pilot feedback.
