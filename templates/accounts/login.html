@@ -3,6 +3,6 @@
 {% block content %}
 <section class="form-layout">
   <div class="form-intro"><p class="eyebrow">Welcome back</p><h1>Pick up where you left off.</h1><p>Your public name is how other members will know you.</p></div>
-  <div class="form-card"><h2>Sign in</h2><form method="post">{% csrf_token %}{% include "accounts/form_fields.html" with form=form %}<input type="hidden" name="next" value="{{ next }}"><button class="button" type="submit">Sign in</button></form><p class="form-foot">New here? <a href="{% url 'accounts:signup' %}">Create an account</a>.</p><p class="small-note">Password recovery is not available yet. Please keep your password in a safe place.</p></div>
+  <div class="form-card"><h2>Sign in</h2>{% if rate_limit_error %}<p class="form-errors" role="alert">{{ rate_limit_error }}</p>{% endif %}<form method="post">{% csrf_token %}{% include "accounts/form_fields.html" with form=form %}<input type="hidden" name="next" value="{{ next }}"><button class="button" type="submit">Sign in</button></form><p class="form-foot">New here? <a href="{% url 'accounts:signup' %}">Create an account</a>.</p><p class="small-note">Password recovery is not available yet. Please keep your password in a safe place.</p></div>
 </section>
 {% endblock %}

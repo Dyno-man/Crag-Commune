@@ -1,8 +1,16 @@
-from django.contrib.auth import get_user_model
-from django.db import IntegrityError, transaction
-from django.test import TestCase
-from django.urls import reverse
+from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
+from threading import Barrier
 
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.db import IntegrityError, close_old_connections, transaction
+from django.test import RequestFactory, TestCase, TransactionTestCase, override_settings
+from django.urls import reverse
+from django.utils import timezone
+
+from .models import AuthAttemptBucket
+from .rate_limits import client_address, consume_attempts, signup_retry_after
 
 Member = get_user_model()
 
@@ -87,3 +95,69 @@ class AccountTests(TestCase):
         self.client.force_login(member)
         self.assertEqual(self.client.get(reverse("accounts:logout")).status_code, 405)
         self.assertRedirects(self.client.post(reverse("accounts:logout")), reverse("home"))
+
+    def test_signup_limit_returns_retry_without_creating_extra_account(self):
+        payload = {"username": "", "password1": "bad", "password2": "bad"}
+        for _ in range(8):
+            self.assertEqual(self.client.post(reverse("accounts:signup"), payload).status_code, 200)
+        blocked = self.client.post(reverse("accounts:signup"), payload)
+        self.assertEqual(blocked.status_code, 429)
+        self.assertContains(blocked, "Too many attempts", status_code=429)
+        self.assertIn("Retry-After", blocked)
+        self.assertEqual(Member.objects.count(), 0)
+
+    def test_login_name_limit_is_generic_and_independent_of_address(self):
+        url = reverse("accounts:login")
+        for index in range(12):
+            response = self.client.post(url, {"username": "Nobody", "password": "bad"}, REMOTE_ADDR=f"192.0.2.{index + 1}")
+            self.assertEqual(response.status_code, 200)
+        blocked = self.client.post(url, {"username": "Nobody", "password": "bad"}, REMOTE_ADDR="192.0.2.99")
+        self.assertEqual(blocked.status_code, 429)
+        self.assertContains(blocked, "Too many attempts", status_code=429)
+        self.assertNotContains(blocked, "Nobody", status_code=429)
+
+    @override_settings(TRUSTED_PROXY_IPS=frozenset({"127.0.0.1"}))
+    def test_only_explicit_proxy_peer_can_supply_cloudflare_address(self):
+        request = RequestFactory().get("/", HTTP_CF_CONNECTING_IP="198.51.100.1", REMOTE_ADDR="203.0.113.9")
+        self.assertEqual(client_address(request), "203.0.113.9")
+        trusted = RequestFactory().get("/", HTTP_CF_CONNECTING_IP="198.51.100.1", REMOTE_ADDR="127.0.0.1")
+        self.assertEqual(client_address(trusted), "198.51.100.1")
+        malformed = RequestFactory().get("/", HTTP_CF_CONNECTING_IP="not-an-ip", REMOTE_ADDR="127.0.0.1")
+        self.assertEqual(client_address(malformed), "127.0.0.1")
+
+    def test_signup_global_limit_covers_many_addresses(self):
+        for index in range(100):
+            address = f"198.51.{index // 254}.{index % 254 + 1}"
+            request = RequestFactory().post("/accounts/join/", REMOTE_ADDR=address)
+            self.assertEqual(signup_retry_after(request), 0)
+        extra = RequestFactory().post("/accounts/join/", REMOTE_ADDR="203.0.113.19")
+        self.assertGreater(signup_retry_after(extra), 0)
+
+    def test_expired_bucket_resets_and_prune_removes_it(self):
+        request = RequestFactory().post("/accounts/join/", REMOTE_ADDR="192.0.2.44")
+        self.assertEqual(signup_retry_after(request), 0)
+        AuthAttemptBucket.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+        self.assertEqual(signup_retry_after(request), 0)
+        self.assertTrue(all(bucket.attempts == 1 for bucket in AuthAttemptBucket.objects.all()))
+        AuthAttemptBucket.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+        call_command("prune_auth_attempts", verbosity=0)
+        self.assertEqual(AuthAttemptBucket.objects.count(), 0)
+
+
+class RateLimitConcurrencyTests(TransactionTestCase):
+    def test_concurrent_signup_attempts_admit_only_eight(self):
+        barrier = Barrier(12)
+
+        def attempt(_index):
+            close_old_connections()
+            barrier.wait()
+            try:
+                return consume_attempts([("signup_address", "192.0.2.1")])
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            results = list(pool.map(attempt, range(12)))
+        self.assertEqual(sum(result == 0 for result in results), 8)
+        self.assertEqual(sum(result > 0 for result in results), 4)
+        self.assertEqual(AuthAttemptBucket.objects.get().attempts, 8)

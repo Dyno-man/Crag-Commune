@@ -1,5 +1,6 @@
 """Local application settings. Production deployment is tracked in issue #3."""
 
+import ipaddress
 import os
 from pathlib import Path
 
@@ -7,6 +8,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host.strip()]
+TRUSTED_PROXY_IPS = frozenset(
+    str(ipaddress.ip_address(address.strip()))
+    for address in os.environ.get("TRUSTED_PROXY_IPS", "").split(",") if address.strip()
+)
 
 INSTALLED_APPS = [
     "accounts",
