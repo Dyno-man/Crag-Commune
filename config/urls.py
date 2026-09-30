@@ -15,4 +15,5 @@ urlpatterns = [
     path("", home, name="home"),
     path("health/", health, name="health"),
     path("accounts/", include("accounts.urls")),
+    path("outings/", include("community.urls")),
 ]

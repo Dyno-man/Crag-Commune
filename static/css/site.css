@@ -270,6 +270,7 @@ h2 {
   .shell {
   width:min(100% - 2rem,1080px)
 }
+
 .header-inner {
   min-height:66px
 }
@@ -310,3 +311,33 @@ nav {
 }
 
 }
+
+.messages { margin-bottom:1.5rem }
+.message { padding:.8rem 1rem; background:var(--paper); border-left:4px solid var(--deep) }
+.message.error { border-color:#9b3026 }
+.page-heading { display:flex; justify-content:space-between; align-items:end; gap:2rem; margin-bottom:2rem }
+.page-heading h1 { margin-bottom:.7rem }
+.page-heading p:not(.eyebrow) { color:var(--muted); max-width:58ch; line-height:1.5 }
+.outing-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr)); gap:1rem }
+.outing-card,.empty-state { background:var(--paper); border:1px solid var(--line); padding:1.5rem }
+.outing-card { border-top:4px solid var(--deep) }
+.outing-card h2 a { text-decoration:none }
+.outing-card p:not(.eyebrow) { color:var(--muted); line-height:1.5 }
+.card-meta { display:flex; flex-wrap:wrap; gap:.6rem 1.3rem; padding-top:1rem; border-top:1px solid var(--line); font-size:.85rem; font-weight:700 }
+.empty-state { grid-column:1/-1 }
+.outing-detail { max-width:800px }
+.outing-detail h1 { max-width:16ch }
+.outing-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin:2rem 0 }
+.outing-facts div { border-top:1px solid var(--line); padding-top:.8rem }
+.outing-facts dt { color:var(--muted); font-size:.85rem; font-weight:700 }
+.outing-facts dd { margin:.25rem 0 0; font-weight:750 }
+.outing-actions { display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin:2rem 0 }
+.outing-actions p { margin:0 }
+.secondary-button { border:1px solid var(--deep); color:var(--deep); background:transparent; border-radius:4px; padding:.6rem .9rem; min-height:44px; font-weight:750 }
+.private-details { background:var(--paper); border-left:5px solid var(--orange); padding:1.5rem; margin:2rem 0 }
+.private-details li { margin:.3rem 0 }
+.request-list { margin:2rem 0 }
+.request-row { display:flex; flex-wrap:wrap; align-items:center; gap:.7rem; border-top:1px solid var(--line); padding:.8rem 0 }
+.request-row span { flex:1 1 180px }
+.access-note { border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; padding-top:1rem; margin-top:2rem }
+@media(max-width:700px) { .page-heading { display:block } .page-heading .button { margin-top:1rem } .outing-facts { grid-template-columns:1fr } }

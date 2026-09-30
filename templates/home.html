@@ -4,8 +4,8 @@
 <section class="intro" aria-labelledby="intro-title">
   <p class="eyebrow">Chattanooga climbing community</p>
   <h1 id="intro-title">A good day starts with good company.</h1>
-  <p class="lead">Crag Commune is taking shape. Create a public name now; outings and reviewed session plans will follow.</p>
-  {% if user.is_authenticated %}<a class="button" href="{% url 'accounts:me' %}">View my profile</a>{% else %}<a class="button" href="{% url 'accounts:signup' %}">Choose a public name</a>{% endif %}
+  <p class="lead">Find a Stone Fort outing and make plans with other climbers. Reviewed session plans are still being built.</p>
+  <a class="button" href="{% url 'community:list' %}">Browse outings</a>
 </section>
-<aside class="notice"><strong>Early foundation</strong><span>There is no outing board or climbing planner yet. Route and access details will appear only after review.</span></aside>
+<aside class="notice"><strong>Early pilot</strong><span>Hosts provide their own outing details. Route and access details will appear only after review; check current official access information before visiting.</span></aside>
 {% endblock %}

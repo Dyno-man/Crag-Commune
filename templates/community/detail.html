@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ outing.title }} | Crag Commune{% endblock %}
+{% block content %}
+<article class="outing-detail">
+  <p class="eyebrow">{{ outing.area_name }} · {{ outing.get_status_display }}</p>
+  <h1>{{ outing.title }}</h1>
+  <p class="lead">{{ outing.description|linebreaksbr }}</p>
+  <dl class="outing-facts">
+    <div><dt>Starts</dt><dd>{{ outing.starts_at|date:"D, M j, Y · g:i A" }} ET</dd></div>
+    <div><dt>Approximate end</dt><dd>{{ outing.ends_at|date:"g:i A" }} ET</dd></div>
+    <div><dt>Host</dt><dd><a href="{% url 'accounts:public_profile' outing.host.username %}">{{ outing.host.username }}</a></dd></div>
+    <div><dt>Space</dt><dd>{{ outing.spaces_left }} of {{ outing.capacity }} places open</dd></div>
+    <div><dt>Joining</dt><dd>{{ outing.get_join_policy_display }}</dd></div>
+  </dl>
+  <div class="outing-actions">
+    {% if user.is_authenticated and user.pk == outing.host_id %}
+      <p>You are hosting this outing.</p>
+    {% elif my_participation %}
+      <p>Your status: <strong>{{ my_participation.get_status_display }}</strong></p>
+      {% if my_participation.status != 'withdrawn' and my_participation.status != 'declined' %}
+        <form method="post" action="{% url 'community:withdraw' outing.pk %}">{% csrf_token %}<button type="submit" class="secondary-button">Leave outing</button></form>
+      {% elif outing.status == 'open' %}
+        <form method="post" action="{% url 'community:join' outing.pk %}">{% csrf_token %}<button type="submit" class="button">Request to join again</button></form>
+      {% endif %}
+    {% elif user.is_authenticated and outing.status == 'open' %}
+      <form method="post" action="{% url 'community:join' outing.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="button">{% if outing.join_policy == 'open' %}Join outing{% else %}Request to join{% endif %}</button>
+      </form>
+    {% else %}
+      <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in to join</a>
+    {% endif %}
+  </div>
+  {% if can_view_private %}
+    <section class="private-details">
+      <p class="eyebrow">Accepted members</p>
+      <h2>Meetup details</h2>
+      {% if outing.private_meetup %}<p>{{ outing.private_meetup|linebreaksbr }}</p>{% else %}<p>The host has not added meetup details yet.</p>{% endif %}
+      <h3>People joining</h3>
+      <ul><li>{{ outing.host.username }} (host)</li>{% for participant in participants %}<li>{{ participant.member.username }}</li>{% endfor %}</ul>
+    </section>
+  {% else %}
+    <p class="small-note">Meetup details and the participant list are shown after acceptance.</p>
+  {% endif %}
+  {% if requests %}
+    <section class="request-list">
+      <h2>Join requests</h2>
+      {% for participation in requests %}
+        <div class="request-row">
+          <span>{{ participation.member.username }} · {{ participation.get_status_display }}</span>
+          <form method="post" action="{% url 'community:accept' outing.pk participation.pk %}">{% csrf_token %}<button type="submit" class="secondary-button">Accept</button></form>
+          <form method="post" action="{% url 'community:decline' outing.pk participation.pk %}">{% csrf_token %}<button type="submit" class="text-button">Decline</button></form>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+  <p class="access-note">Check <a href="https://www.seclimbers.org/project/stone-fort/">current Stone Fort access information from SCC</a> before visiting. This outing is member hosted and does not include reviewed navigation.</p>
+</article>
+{% endblock %}
