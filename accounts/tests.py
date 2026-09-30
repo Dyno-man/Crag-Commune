@@ -34,6 +34,32 @@ class AccountTests(TestCase):
         self.assertContains(response, "already in use")
         self.assertEqual(Member.objects.count(), 1)
 
+    def test_public_name_with_space_can_sign_up_sign_in_and_open_profile(self):
+        password = "A-long-unique-test-password-829!"
+        response = self.client.post(reverse("accounts:signup"), {
+            "username": "Grant V",
+            "password1": password,
+            "password2": password,
+        })
+        self.assertRedirects(response, reverse("accounts:me"))
+        self.assertTrue(Member.objects.filter(username="Grant V").exists())
+
+        self.client.post(reverse("accounts:logout"))
+        self.assertTrue(self.client.login(username="Grant V", password=password))
+        profile = self.client.get(reverse("accounts:public_profile", args=["Grant V"]))
+        self.assertContains(profile, "Grant V")
+
+    def test_public_name_rejects_repeated_spaces(self):
+        for name in ("Grant  V", "Grant\tV"):
+            with self.subTest(name=name):
+                response = self.client.post(reverse("accounts:signup"), {
+                    "username": name,
+                    "password1": "A-long-unique-test-password-829!",
+                    "password2": "A-long-unique-test-password-829!",
+                })
+                self.assertContains(response, "Use letters, digits")
+        self.assertEqual(Member.objects.count(), 0)
+
     def test_database_rejects_case_insensitive_duplicate(self):
         Member.objects.create_user(username="GraniteGuest", password="A-long-unique-test-password-829!")
         with self.assertRaises(IntegrityError), transaction.atomic():
