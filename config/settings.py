@@ -9,6 +9,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host.strip()]
 
 INSTALLED_APPS = [
+    "accounts",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -30,7 +31,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = "config.urls"
 TEMPLATES = [{
     "BACKEND": "django.template.backends.django.DjangoTemplates",
-    "DIRS": [],
+    "DIRS": [BASE_DIR / "templates"],
     "APP_DIRS": True,
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.debug",
@@ -63,7 +64,12 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = "accounts.Member"
+LOGIN_REDIRECT_URL = "accounts:me"
+LOGOUT_REDIRECT_URL = "home"
+LOGIN_URL = "accounts:login"
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
