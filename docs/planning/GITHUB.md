@@ -11,7 +11,7 @@ Initial milestones and issues created from the planning backlog. GitHub is the s
 
 ## Issues
 
-- E01: [Confirm the pilot sector and local community needs](https://github.com/Dyno-man/Crag-Commune/issues/1)
+- E01: [Confirm Stone Fort pilot scope and local community needs](https://github.com/Dyno-man/Crag-Commune/issues/1)
 - E02: [Audit data rights and assemble a reviewed pilot catalog](https://github.com/Dyno-man/Crag-Commune/issues/2)
 - E03: [Scaffold the application and prove Docker deployment and restoration](https://github.com/Dyno-man/Crag-Commune/issues/3)
 - E04: [Build pseudonymous profiles and joinable climbing outings](https://github.com/Dyno-man/Crag-Commune/issues/4)
