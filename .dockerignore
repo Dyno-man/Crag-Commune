@@ -1,0 +1,9 @@
+.git
+.env
+.venv
+__pycache__
+*.pyc
+*.sqlite3
+private
+local-data
+qa

@@ -2,7 +2,16 @@
 
 A homegrown Chattanooga climbing community with shareable session plans: find warmups near your project, organize an outing, and meet people to climb with.
 
-**Status: planning.** There is no running application or deployable Docker image yet.
+**Status: early scaffold.** The local Django foundation has a health endpoint. Community and planner features do not exist yet, and production deployment has not been verified.
+
+## Local development
+
+1. Copy `.env.example` to `.env` and replace both placeholder secrets. Keep `.env` out of git.
+2. Start Docker Desktop, then run `docker compose build`.
+3. Run `docker compose run --rm web python manage.py migrate`.
+4. Run `docker compose up -d` and open `http://127.0.0.1:8000/health/`.
+
+Use `docker compose run --rm web python manage.py check` for Django checks and `docker compose run --rm web python manage.py test` for tests. After model changes, create migrations with `docker compose run --rm web python manage.py makemigrations` and apply them with the migration command above. Stop services with `docker compose down`; the named PostgreSQL volume remains. This Compose setup is for local development only. VPS deployment, TLS, backups, and an isolated restore are tracked in [issue #3](https://github.com/Dyno-man/Crag-Commune/issues/3).
 
 ## Start here
 
