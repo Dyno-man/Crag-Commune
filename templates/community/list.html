@@ -2,7 +2,7 @@
 {% block title %}Stone Fort outings | Crag Commune{% endblock %}
 {% block content %}
 <section class="page-heading">
-  <div><p class="eyebrow">Stone Fort</p><h1>Find your next session.</h1><p>Join a member-hosted outing. Climbing plans and access details are still being reviewed.</p></div>
+  <div><p class="eyebrow">Stone Fort</p><h1>Find your next session.</h1><p>Join a member-hosted outing. Climbing plans are still being reviewed. Check <a href="https://www.seclimbers.org/project/stone-fort/">current Stone Fort access information from SCC</a> before visiting.</p></div>
   {% if user.is_authenticated %}<a class="button" href="{% url 'community:create' %}">Host an outing</a>{% endif %}
 </section>
 <div class="outing-list">
