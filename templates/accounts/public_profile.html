@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ member.username }} | Crag Commune{% endblock %}
+{% block content %}
+<section class="public-profile"><p class="eyebrow">Member profile</p><h1>{{ member.username }}</h1>{% if member.home_region %}<p class="profile-region">{{ member.home_region }}</p>{% endif %}{% if member.bio %}<p class="profile-bio">{{ member.bio }}</p>{% else %}<p class="muted">No introduction yet.</p>{% endif %}<p class="small-note">Profile details are self-reported.</p></section>
+{% endblock %}

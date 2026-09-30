@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Crag Commune | Climb together{% endblock %}
+{% block content %}
+<section class="intro" aria-labelledby="intro-title">
+  <p class="eyebrow">Chattanooga climbing community</p>
+  <h1 id="intro-title">A good day starts with good company.</h1>
+  <p class="lead">Crag Commune is taking shape. Create a public name now; outings and reviewed session plans will follow.</p>
+  {% if user.is_authenticated %}<a class="button" href="{% url 'accounts:me' %}">View my profile</a>{% else %}<a class="button" href="{% url 'accounts:signup' %}">Choose a public name</a>{% endif %}
+</section>
+<aside class="notice"><strong>Early foundation</strong><span>There is no outing board or climbing planner yet. Route and access details will appear only after review.</span></aside>
+{% endblock %}

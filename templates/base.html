@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Crag Commune{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="{% url 'home' %}" aria-label="Crag Commune home"><span class="brand-mark" aria-hidden="true">C<span>C</span></span><span>Crag Commune</span></a>
+      <nav aria-label="Main navigation">
+        {% if user.is_authenticated %}
+          <a href="{% url 'accounts:me' %}">My profile</a>
+          <form method="post" action="{% url 'accounts:logout' %}" class="nav-form">{% csrf_token %}<button type="submit" class="text-button">Sign out</button></form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Sign in</a>
+          <a href="{% url 'accounts:signup' %}" class="nav-action">Join</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main class="shell main-content">{% block content %}{% endblock %}</main>
+  <footer class="site-footer"><div class="shell">Local climbing, shared with care. <span>Community and planning features are being built.</span></div></footer>
+</body>
+</html>

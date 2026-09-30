@@ -13,6 +13,8 @@ A homegrown Chattanooga climbing community with shareable session plans: find wa
 
 Use `docker compose run --rm web python manage.py check` for Django checks and `docker compose run --rm web python manage.py test` for tests. After model changes, create migrations with `docker compose run --rm web python manage.py makemigrations` and apply them with the migration command above. Stop services with `docker compose down`; the named PostgreSQL volume remains. This Compose setup is for local development only. VPS deployment, TLS, backups, and an isolated restore are tracked in [issue #3](https://github.com/Dyno-man/Crag-Commune/issues/3).
 
+The account scaffold uses a custom user model. Start it with a fresh local database volume; a volume created by the earlier health-only scaffold has Django's original user migration history and is not migrated by this slice. Keep any existing volume until its contents have been reviewed. Password recovery, signup rate limits, and public deployment remain open work.
+
 ## Start here
 
 - [Full project plan](docs/planning/PROJECT_PLAN.md)

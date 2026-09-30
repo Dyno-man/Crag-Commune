@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}My profile | Crag Commune{% endblock %}
+{% block content %}
+<section class="profile-heading"><div><p class="eyebrow">Your space</p><h1>{{ user.username }}</h1><p>This is your public name. Your email stays private.</p></div><a class="quiet-link" href="{% url 'accounts:public_profile' user.username %}">See public profile</a></section>
+<div class="form-card profile-card"><h2>Profile details</h2><form method="post">{% csrf_token %}{% include "accounts/form_fields.html" with form=form %}<button class="button" type="submit">Save profile</button></form><p class="small-note">These details are visible on your public profile. Keep your home region approximate.</p></div>
+{% endblock %}
