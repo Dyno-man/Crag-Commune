@@ -2,7 +2,7 @@
 
 ## Project status and scope
 
-Read README.md and docs/planning/PROJECT_PLAN.md before implementation. This is a planning repository; the proposed stack is Django, PostgreSQL, and Docker Compose. Do not claim there is a runnable application until one exists and has been checked. Add actual build, lint, and test commands here when scaffolding is complete.
+Read README.md and docs/planning/PROJECT_PLAN.md before implementation. The local scaffold uses Django, PostgreSQL, and Docker Compose. Do not claim production readiness until deployment and restore have been checked. Local commands: `docker compose build`, `docker compose run --rm web python manage.py migrate`, `docker compose run --rm web python manage.py check`, and `docker compose run --rm web python manage.py test`. No dedicated lint command is configured yet.
 
 Build small, reviewable slices tied to roadmap issues. Keep community coverage separate from planner coverage. The first planner targets one reviewed Stone Fort sector; do not silently expand to multiple areas or rope-climbing workflows.
 
