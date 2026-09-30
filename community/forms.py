@@ -68,3 +68,18 @@ class CancellationForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={"rows": 3}),
     )
+
+
+class EditOutingForm(OutingForm):
+    version = forms.IntegerField(widget=forms.HiddenInput(), min_value=1)
+    acknowledge_change = forms.BooleanField(
+        required=False,
+        label="I understand accepted members will receive a notice about these changes.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and not self.is_bound:
+            self.fields["start_local"].initial = self.instance.starts_at.astimezone(PILOT_TIME_ZONE).strftime("%Y-%m-%dT%H:%M")
+            self.fields["end_local"].initial = self.instance.ends_at.astimezone(PILOT_TIME_ZONE).strftime("%Y-%m-%dT%H:%M")
+            self.fields["version"].initial = self.instance.version

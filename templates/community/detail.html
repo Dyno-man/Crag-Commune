@@ -19,7 +19,7 @@
   <div class="outing-actions">
     {% if user.is_authenticated and user.pk == outing.host_id %}
       <p>You are hosting this outing.</p>
-      {% if outing.status == 'open' %}<a href="{% url 'community:cancel' outing.pk %}" class="quiet-link">Cancel outing</a>{% endif %}
+      {% if outing.status == 'open' %}<a href="{% url 'community:edit' outing.pk %}" class="quiet-link">Edit outing</a> · <a href="{% url 'community:cancel' outing.pk %}" class="quiet-link">Cancel outing</a>{% endif %}
     {% elif my_participation %}
       <p>Your status: <strong>{{ my_participation.get_status_display }}</strong></p>
       {% if outing.status == 'open' and my_participation.status != 'withdrawn' and my_participation.status != 'declined' %}
@@ -56,6 +56,18 @@
           <form method="post" action="{% url 'community:accept' outing.pk participation.pk %}">{% csrf_token %}<button type="submit" class="secondary-button">Accept</button></form>
           <form method="post" action="{% url 'community:decline' outing.pk participation.pk %}">{% csrf_token %}<button type="submit" class="text-button">Decline</button></form>
         </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+  {% if revisions %}
+    <section class="private-details">
+      <h2>Change history</h2>
+      <p class="small-note">Visible to the host and members who were accepted when each change was made.</p>
+      {% for revision in revisions %}
+        <h3>{{ revision.created_at|date:"M j, Y · g:i A" }} ET</h3>
+        <ul>
+          {% for change in revision.changes %}<li><strong>{{ change.label }}:</strong> {{ change.before }} → {{ change.after }}</li>{% endfor %}
+        </ul>
       {% endfor %}
     </section>
   {% endif %}

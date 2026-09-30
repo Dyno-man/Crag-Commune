@@ -9,6 +9,7 @@ urlpatterns = [
     path("new/", views.outing_create, name="create"),
     path("notices/", views.outing_notices, name="notices"),
     path("<int:pk>/", views.outing_detail, name="detail"),
+    path("<int:pk>/edit/", views.edit, name="edit"),
     path("<int:pk>/cancel/", views.cancel, name="cancel"),
     path("<int:pk>/join/", views.join, name="join"),
     path("<int:pk>/withdraw/", views.leave, name="withdraw"),

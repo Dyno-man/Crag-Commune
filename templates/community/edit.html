@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Edit outing | Crag Commune{% endblock %}
+{% block content %}
+<section class="form-layout">
+  <div class="form-intro">
+    <p class="eyebrow">Host action</p>
+    <h1>Edit your outing.</h1>
+    <p>{{ outing.title }}</p>
+    <p>Times use Stone Fort local time (America/New_York). {% if accepted_count %}Changes will appear in the history and send an in-app notice to {{ accepted_count }} accepted member{{ accepted_count|pluralize }}.{% else %}Changes will appear in the history. Members accepted later will see the current outing details.{% endif %}</p>
+    <p class="small-note">Meetup details and their change history are visible only to the host and members accepted when the change was made.</p>
+  </div>
+  <div class="form-card">
+    <h2>Outing details</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% include "accounts/form_fields.html" with form=form %}
+      <button class="button" type="submit">Save changes</button>
+    </form>
+    <p class="form-foot"><a href="{% url 'community:detail' outing.pk %}">Back to outing</a></p>
+  </div>
+</section>
+{% endblock %}
