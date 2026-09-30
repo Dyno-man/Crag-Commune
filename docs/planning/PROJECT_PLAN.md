@@ -10,7 +10,7 @@ Crag Commune will help people around Chattanooga find people to climb with and o
 
 The social goal matters as much as the planning tool. Someone who is new to Chattanooga, or simply does not know many other climbers, should be able to find a welcoming outing without already belonging to an established group. Profiles should describe interests and experience without turning climbing ability into a leaderboard. Public pseudonyms are welcome, and real-name or climbing-ability verification is not required.
 
-The recommended first release is a small, mobile-friendly community with a planner covering one selected Stone Fort sector. We can support discussion and meetup posts for other areas before promising automated itineraries there. Build a useful structured planner first, then add optional conversational input. A model outage or spending limit should never prevent people from seeing their plans or arranging a session.
+The recommended first release is a small, mobile-friendly community. The owner has since requested all of Stone Fort as the pilot coverage goal. Planner sections become available only as their data and paths pass review; discussion and meetup posts can cover the broader area before automated itineraries do. Build a useful structured planner first, then add optional conversational input. A model outage or spending limit should never prevent people from seeing their plans or arranging a session.
 
 The project will be open source and run on the owner's VPS using Docker Compose. The proposed implementation is a Django application, PostgreSQL database, and the VPS's existing reverse proxy or a small Caddy service. The stack is a recommendation, not an existing implementation. This repository currently contains the planning foundation.
 
@@ -49,7 +49,7 @@ The research establishes overlap, not an exhaustive market survey or a claim tha
 
 Community coverage and planner coverage should be different settings. A member can organize a session at an area with only a verified public name and access link. The planner becomes available only when that area has sufficient approved climbs and navigation data.
 
-The proposed first planning area is a single Stone Fort sector chosen with local climbers. A target of 30 to 60 reviewed climbs is a planning estimate, not a statement about available data. The pack must include useful warmups across the pilot group's grade ranges, several project choices, meeting and entry points, and connected approved paths. Expand only after actual sessions show that people can find the stops.
+The owner-selected pilot area is all of Stone Fort. Track planner readiness by connected reviewed sections inside that area; only enable a section when its climb facts, access, and paths are approved. The earlier target of 30 to 60 reviewed climbs applied to a single-sector proposal and is not a whole-crag completion estimate. Each activated section needs useful warmups across the pilot group's grade ranges, project choices, meeting and entry points, and connected approved paths. See [pilot scope and evidence log](PILOT_SCOPE.md).
 
 Upper and Lower Leda are candidates for the first rope-climbing expansion. Keep them distinct until local reviewers confirm naming, access, and trail relationships. “St. Elmo” remains a candidate requiring identification of the exact climbing area and permission to publish details; do not convert a neighborhood name into an invented crag or expose an informal access location.
 
@@ -264,7 +264,7 @@ Track plans created and saved, invitations posted, join requests accepted, self-
 
 ## 17 Roadmap and decision gates
 
-Milestone 0 establishes feasibility: confirm the pilot sector and maintainers, interview five to eight local climbers, audit a small dataset sample, document permissions, and sketch the first reviewed trail graph. Exit only when there is a viable permitted data pack and someone responsible for corrections. If permissions fail, build with original contributions and reduce coverage.
+Milestone 0 establishes feasibility: confirm maintainers and the first reviewed section within the owner-selected Stone Fort pilot area, interview five to eight local climbers, audit a small dataset sample, document permissions, and sketch the first reviewed trail graph. Exit only when there is a viable permitted data pack and someone responsible for corrections. If permissions fail, build with original contributions and reduce coverage.
 
 Milestone 1 delivers the local community: accounts, profiles, area pages, structured outings, join states, discussion, reporting, and moderation. Deploy a private pilot through Compose and prove backup restoration. This can proceed while map work continues, but must not advertise a planner that does not exist.
 
@@ -272,7 +272,7 @@ Milestone 2 delivers the deterministic planner: reviewed climb records, aliases 
 
 Milestone 3 adds conversational planning and opens the pilot: constrained model parsing, explanations, spend controls, provider-failure fallback, participant notifications, and a four-week evaluation. Launch publicly only if moderation ownership, privacy behavior, access maintenance, and the planner checks are operating reliably.
 
-Milestone 4 expands coverage: add another Stone Fort sector, then choose a second area according to demand, permission, and local maintenance. Rope climbing has a separate readiness checklist. Native apps, live GPS, offline map packages, equipment matching, and deeper conditions integration stay in the later backlog.
+Milestone 4 expands reviewed planner coverage within Stone Fort, then considers a second area according to demand, permission, and local maintenance. Rope climbing has a separate readiness checklist. Native apps, live GPS, offline map packages, equipment matching, and deeper conditions integration stay in the later backlog.
 
 For one experienced developer working part time with timely access to data and reviewers, a rough planning range is 1 to 2 weeks for feasibility, 2 to 3 for the community, 2 to 4 for the planner and maps, and 1 to 2 for conversational features, followed by the four-week pilot. These are estimates; permission responses and fieldwork are external dependencies and may dominate the schedule.
 
