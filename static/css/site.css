@@ -341,3 +341,4 @@ nav {
 .request-row span { flex:1 1 180px }
 .access-note { border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; padding-top:1rem; margin-top:2rem }
 @media(max-width:700px) { .page-heading { display:block } .page-heading .button { margin-top:1rem } .outing-facts { grid-template-columns:1fr } }
+@media(max-width:700px) { .header-inner { display:block; padding-block:.8rem } nav { flex-wrap:wrap; margin-top:.75rem } }

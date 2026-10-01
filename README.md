@@ -15,7 +15,7 @@ Use `docker compose run --rm web python manage.py check` for Django checks and `
 
 The account scaffold uses a custom user model. Start it with a fresh local database volume; a volume created by the earlier health-only scaffold has Django's original user migration history and is not migrated by this slice. Keep any existing volume until its contents have been reviewed. Password recovery, signup rate limits, and public deployment remain open work.
 
-The local outing board is at `/outings/`. Hosts can post a dated outing, accept or decline requests, and keep meetup details visible to accepted members. Outings do not provide reviewed route, trail, or access guidance. Cancellation, material-change notifications, abuse limits, and a production-ready moderation flow remain open work.
+The local outing board is at `/outings/`. Hosts can post a dated outing, accept or decline requests, cancel an outing, and keep meetup details visible to accepted members. Accepted members see cancellation notices at `/outings/notices/`. Outings do not provide reviewed route, trail, or access guidance. Material-change editing and notifications, abuse limits, and a production-ready moderation flow remain open work.
 
 ## Start here
 

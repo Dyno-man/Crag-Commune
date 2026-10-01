@@ -14,6 +14,7 @@
       <nav aria-label="Main navigation">
         <a href="{% url 'community:list' %}">Outings</a>
         {% if user.is_authenticated %}
+          <a href="{% url 'community:notices' %}">Notices</a>
           <a href="{% url 'accounts:me' %}">My profile</a>
           <form method="post" action="{% url 'accounts:logout' %}" class="nav-form">{% csrf_token %}<button type="submit" class="text-button">Sign out</button></form>
         {% else %}

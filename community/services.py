@@ -1,6 +1,8 @@
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.utils import timezone
 
-from .models import Outing, Participation
+from .models import Outing, OutingNotice, Participation
 
 
 class ParticipationError(Exception):
@@ -52,3 +54,22 @@ def withdraw(outing_id, member):
     participation.status = Participation.Status.WITHDRAWN
     participation.save(update_fields=["status", "updated_at"])
     return participation
+
+
+@transaction.atomic
+def cancel_outing(outing_id, host, note=""):
+    outing = Outing.objects.select_for_update().get(pk=outing_id)
+    if outing.host_id != host.pk:
+        raise PermissionDenied("Only the host can cancel this outing.")
+    if outing.status == Outing.Status.CANCELLED:
+        return False
+    outing.status = Outing.Status.CANCELLED
+    outing.cancelled_at = timezone.now()
+    outing.cancelled_by = host
+    outing.cancellation_note = note
+    outing.save(update_fields=["status", "cancelled_at", "cancelled_by", "cancellation_note"])
+    recipients = outing.participations.filter(status=Participation.Status.ACCEPTED).values_list("member_id", flat=True)
+    OutingNotice.objects.bulk_create(
+        [OutingNotice(outing=outing, recipient_id=recipient_id, kind=OutingNotice.Kind.CANCELLED) for recipient_id in recipients]
+    )
+    return True

@@ -5,19 +5,24 @@
   <p class="eyebrow">{{ outing.area_name }} · {{ outing.get_status_display }}</p>
   <h1>{{ outing.title }}</h1>
   <p class="lead">{{ outing.description|linebreaksbr }}</p>
+  {% if outing.status == 'cancelled' %}
+    <p class="message" role="status">This outing was cancelled on {{ outing.cancelled_at|date:"M j, Y · g:i A" }} ET. New joins are closed.</p>
+    {% if can_view_cancellation_note and outing.cancellation_note %}<p class="small-note">Host note to accepted members: {{ outing.cancellation_note|linebreaksbr }}</p>{% endif %}
+  {% endif %}
   <dl class="outing-facts">
     <div><dt>Starts</dt><dd>{{ outing.starts_at|date:"D, M j, Y · g:i A" }} ET</dd></div>
     <div><dt>Approximate end</dt><dd>{{ outing.ends_at|date:"g:i A" }} ET</dd></div>
     <div><dt>Host</dt><dd><a href="{% url 'accounts:public_profile' outing.host.username %}">{{ outing.host.username }}</a></dd></div>
-    <div><dt>Space</dt><dd>{{ outing.spaces_left }} of {{ outing.capacity }} places open</dd></div>
-    <div><dt>Joining</dt><dd>{{ outing.get_join_policy_display }}</dd></div>
+    <div><dt>Space</dt><dd>{% if outing.status == 'cancelled' %}Closed{% else %}{{ outing.spaces_left }} of {{ outing.capacity }} places open{% endif %}</dd></div>
+    <div><dt>Joining</dt><dd>{% if outing.status == 'cancelled' %}Closed to joins{% else %}{{ outing.get_join_policy_display }}{% endif %}</dd></div>
   </dl>
   <div class="outing-actions">
     {% if user.is_authenticated and user.pk == outing.host_id %}
       <p>You are hosting this outing.</p>
+      {% if outing.status == 'open' %}<a href="{% url 'community:cancel' outing.pk %}" class="quiet-link">Cancel outing</a>{% endif %}
     {% elif my_participation %}
       <p>Your status: <strong>{{ my_participation.get_status_display }}</strong></p>
-      {% if my_participation.status != 'withdrawn' and my_participation.status != 'declined' %}
+      {% if outing.status == 'open' and my_participation.status != 'withdrawn' and my_participation.status != 'declined' %}
         <form method="post" action="{% url 'community:withdraw' outing.pk %}">{% csrf_token %}<button type="submit" class="secondary-button">Leave outing</button></form>
       {% elif outing.status == 'open' %}
         <form method="post" action="{% url 'community:join' outing.pk %}">{% csrf_token %}<button type="submit" class="button">Request to join again</button></form>
@@ -27,7 +32,7 @@
         {% csrf_token %}
         <button type="submit" class="button">{% if outing.join_policy == 'open' %}Join outing{% else %}Request to join{% endif %}</button>
       </form>
-    {% else %}
+    {% elif outing.status == 'open' %}
       <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in to join</a>
     {% endif %}
   </div>
@@ -39,7 +44,7 @@
       <h3>People joining</h3>
       <ul><li>{{ outing.host.username }} (host)</li>{% for participant in participants %}<li>{{ participant.member.username }}</li>{% endfor %}</ul>
     </section>
-  {% else %}
+  {% elif outing.status == 'open' %}
     <p class="small-note">Meetup details and the participant list are shown after acceptance.</p>
   {% endif %}
   {% if requests %}

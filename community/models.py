@@ -24,6 +24,11 @@ class Outing(models.Model):
     join_policy = models.CharField(max_length=16, choices=JoinPolicy.choices, default=JoinPolicy.REQUEST)
     private_meetup = models.TextField(max_length=500, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="cancelled_outings"
+    )
+    cancellation_note = models.CharField(max_length=280, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -44,7 +49,7 @@ class Outing(models.Model):
         return max(0, self.capacity - 1 - self.accepted_count())
 
     def can_view_private(self, user):
-        return user.is_authenticated and (
+        return self.status == self.Status.OPEN and user.is_authenticated and (
             user.pk == self.host_id or self.participations.filter(member=user, status=Participation.Status.ACCEPTED).exists()
         )
 
@@ -65,3 +70,23 @@ class Participation(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["outing", "member"], name="one_participation_per_member")]
+
+
+class OutingNotice(models.Model):
+    class Kind(models.TextChoices):
+        CANCELLED = "cancelled", "Outing cancelled"
+
+    outing = models.ForeignKey(Outing, on_delete=models.CASCADE, related_name="notices")
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="outing_notices")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["outing", "recipient"],
+                condition=Q(kind="cancelled"),
+                name="one_cancellation_notice_per_member",
+            )
+        ]

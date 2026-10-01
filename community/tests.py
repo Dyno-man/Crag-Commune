@@ -11,8 +11,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .forms import parse_local_time
-from .models import Outing, Participation
-from .services import ParticipationError, host_decide, request_to_join
+from .models import Outing, OutingNotice, Participation
+from .services import ParticipationError, cancel_outing, host_decide, request_to_join
 
 
 Member = get_user_model()
@@ -104,6 +104,71 @@ class OutingViewTests(TestCase):
     def test_clock_change_time_is_rejected(self):
         with self.assertRaises(ValidationError):
             parse_local_time("2027-03-14T02:30")
+
+    def test_two_accounts_join_then_receive_private_cancellation_notice(self):
+        password = "Long-test-password-129!"
+        for username in ("PilotHost", "PilotGuest"):
+            response = self.client.post(reverse("accounts:signup"), {
+                "username": username,
+                "password1": password,
+                "password2": password,
+            })
+            self.assertRedirects(response, reverse("accounts:me"))
+            self.client.post(reverse("accounts:logout"))
+
+        host = Member.objects.get(username="PilotHost")
+        guest = Member.objects.get(username="PilotGuest")
+        outing = sample_outing(host, capacity=2)
+        outing.title = "Cancelled pilot session"
+        outing.save(update_fields=["title"])
+        detail_url = reverse("community:detail", args=[outing.pk])
+        cancel_url = reverse("community:cancel", args=[outing.pk])
+
+        self.client.login(username=guest.username, password=password)
+        self.assertRedirects(self.client.post(reverse("community:join", args=[outing.pk])), detail_url)
+        participation = Participation.objects.get(outing=outing, member=guest)
+        self.assertEqual(participation.status, Participation.Status.REQUESTED)
+        self.assertNotContains(self.client.get(detail_url), "Private meeting clue")
+        self.assertEqual(self.client.get(cancel_url).status_code, 403)
+        self.assertEqual(self.client.post(cancel_url).status_code, 403)
+
+        self.client.post(reverse("accounts:logout"))
+        self.client.login(username=host.username, password=password)
+        self.client.post(reverse("community:accept", args=[outing.pk, participation.pk]))
+        participation.refresh_from_db()
+        self.assertEqual(participation.status, Participation.Status.ACCEPTED)
+        self.assertContains(self.client.get(cancel_url), "Confirm cancellation")
+        self.assertRedirects(self.client.post(cancel_url, {"note": "Plans changed; please stay home."}), detail_url)
+        self.assertRedirects(self.client.post(cancel_url, {"note": "Different note"}), detail_url)
+        outing.refresh_from_db()
+        self.assertEqual(outing.status, Outing.Status.CANCELLED)
+        self.assertEqual(outing.cancelled_by, host)
+        self.assertIsNotNone(outing.cancelled_at)
+        self.assertEqual(OutingNotice.objects.filter(outing=outing, recipient=guest).count(), 1)
+        self.assertNotContains(self.client.get(reverse("community:list")), outing.title)
+
+        self.client.post(reverse("accounts:logout"))
+        public = self.client.get(detail_url)
+        self.assertContains(public, "This outing was cancelled")
+        self.assertNotContains(public, "Plans changed")
+        self.assertNotContains(public, "Private meeting clue")
+
+        self.client.login(username=guest.username, password=password)
+        self.assertContains(self.client.get(reverse("community:notices")), outing.title)
+        self.assertContains(self.client.get(detail_url), "Plans changed; please stay home.")
+        self.assertNotContains(self.client.get(detail_url), "Private meeting clue")
+        self.client.post(reverse("community:join", args=[outing.pk]))
+        self.assertEqual(OutingNotice.objects.filter(outing=outing, recipient=guest).count(), 1)
+
+    def test_pending_member_gets_no_cancellation_notice(self):
+        self.client.force_login(self.guest)
+        self.client.post(reverse("community:join", args=[self.outing.pk]))
+        self.client.force_login(self.host)
+        cancel_outing(self.outing.pk, self.host, "Private cancellation note")
+        self.client.force_login(self.guest)
+        self.assertFalse(OutingNotice.objects.filter(outing=self.outing, recipient=self.guest).exists())
+        self.assertNotContains(self.client.get(reverse("community:notices")), self.outing.title)
+        self.assertNotContains(self.client.get(reverse("community:detail", args=[self.outing.pk])), "Private cancellation note")
 
 
 class CapacityConcurrencyTests(TransactionTestCase):

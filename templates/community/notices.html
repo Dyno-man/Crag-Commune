@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Notices | Crag Commune{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Your outings</p>
+  <h1>Notices</h1>
+  <p>Changes to outings you joined appear here.</p>
+</section>
+<div class="outing-list">
+  {% for notice in notices %}
+    <article class="outing-card">
+      <p class="eyebrow">{{ notice.created_at|date:"M j, Y · g:i A" }} ET</p>
+      <h2><a href="{% url 'community:detail' notice.outing.pk %}">{{ notice.outing.title }}</a></h2>
+      <p>{{ notice.get_kind_display }}. Open the outing to see any note from the host.</p>
+    </article>
+  {% empty %}
+    <div class="empty-state"><h2>No notices yet.</h2><p>Updates to outings you join will appear here.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}
