@@ -342,3 +342,15 @@ nav {
 .access-note { border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; padding-top:1rem; margin-top:2rem }
 @media(max-width:700px) { .page-heading { display:block } .page-heading .button { margin-top:1rem } .outing-facts { grid-template-columns:1fr } }
 @media(max-width:700px) { .header-inner { display:block; padding-block:.8rem } nav { flex-wrap:wrap; margin-top:.75rem } }
+
+.discussion-filters { display:flex; flex-wrap:wrap; gap:.5rem; margin:1.5rem 0 }
+.discussion-filters a { border:1px solid var(--line); border-radius:3px; background:var(--paper); padding:.6rem .85rem; min-height:44px; display:inline-flex; align-items:center }
+.discussion-filters a[aria-current="page"] { border-color:var(--deep); background:var(--deep); color:var(--chalk) }
+.discussion-search { display:flex; flex-wrap:wrap; align-items:end; gap:.6rem; margin:1.5rem 0 2rem }
+.discussion-search label { flex-basis:100%; font-weight:750 }
+.discussion-search input { flex:1 1 220px; min-height:44px; border:1px solid #83999a; border-radius:3px; padding:.6rem .75rem; min-width:0 }
+.discussion-post h1 { overflow-wrap:anywhere }
+.discussion-body { line-height:1.65; overflow-wrap:anywhere; white-space:normal }
+.discussion-replies { max-width:800px; margin-top:3rem }
+.discussion-reply { border-top:1px solid var(--line); padding:1.2rem 0 }
+.discussion-reply-form { margin-top:2rem; max-width:640px }

@@ -108,3 +108,37 @@ class OutingNotice(models.Model):
                 name="one_change_notice_per_member",
             ),
         ]
+
+
+class DiscussionCategory(models.Model):
+    slug = models.SlugField(max_length=40, unique=True)
+    name = models.CharField(max_length=80)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class DiscussionPost(models.Model):
+    category = models.ForeignKey(DiscussionCategory, on_delete=models.PROTECT, related_name="posts")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="discussion_posts")
+    title = models.CharField(max_length=120)
+    body = models.TextField(max_length=3000)
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+
+class DiscussionReply(models.Model):
+    post = models.ForeignKey(DiscussionPost, on_delete=models.CASCADE, related_name="replies")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="discussion_replies")
+    body = models.TextField(max_length=1500)
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "pk"]

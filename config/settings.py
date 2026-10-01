@@ -39,6 +39,7 @@ TEMPLATES = [{
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        "community.context_processors.discussion_status",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -68,6 +69,9 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.Member"
+# Public discussion remains closed until the notice, reporting, moderation,
+# and posting limits in issues #28 and #5 have been reviewed and tested.
+DISCUSSION_ENABLED = False
 LOGIN_REDIRECT_URL = "accounts:me"
 LOGOUT_REDIRECT_URL = "home"
 LOGIN_URL = "accounts:login"
