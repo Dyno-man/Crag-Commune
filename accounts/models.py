@@ -32,3 +32,10 @@ class Member(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class AuthAttemptBucket(models.Model):
+    # Keys are HMACs of an address or login name; raw values are not retained.
+    key = models.CharField(max_length=64, unique=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    expires_at = models.DateTimeField(db_index=True)
