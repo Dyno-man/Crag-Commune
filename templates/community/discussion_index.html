@@ -3,7 +3,7 @@
 {% block content %}
 <section class="page-heading">
   <div><p class="eyebrow">Community</p><h1>Discussion</h1><p>Find climbing partners, ask local questions, and share personal experience.</p></div>
-  {% if user.is_authenticated %}<a class="button" href="{% url 'discussion:create' %}">Start a post</a>{% endif %}
+  {% if can_post %}<a class="button" href="{% url 'discussion:create' %}">Start a post</a>{% endif %}
 </section>
 <p class="small-note">Access and conditions posts are personal reports, not official status. Check the current land-manager information before visiting.</p>
 <nav class="discussion-filters" aria-label="Discussion categories">
@@ -27,5 +27,5 @@
     <div class="empty-state"><h2>No posts found.</h2><p>Try another category or search term.</p></div>
   {% endfor %}
 </div>
-{% if not user.is_authenticated %}<p class="form-foot"><a href="{% url 'accounts:login' %}">Sign in</a> to start a post or reply.</p>{% endif %}
+{% if not user.is_authenticated %}<p class="form-foot"><a href="{% url 'accounts:login' %}">Sign in</a> to start a post or reply.</p>{% elif not can_post %}<p class="small-note">Your account cannot post right now.</p>{% endif %}
 {% endblock %}

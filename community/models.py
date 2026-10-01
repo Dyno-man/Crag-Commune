@@ -142,3 +142,64 @@ class DiscussionReply(models.Model):
 
     class Meta:
         ordering = ["created_at", "pk"]
+
+
+class DiscussionReport(models.Model):
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        RESOLVED = "resolved", "Resolved"
+
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="discussion_reports")
+    post = models.ForeignKey(DiscussionPost, on_delete=models.PROTECT, null=True, blank=True, related_name="reports")
+    reply = models.ForeignKey(DiscussionReply, on_delete=models.PROTECT, null=True, blank=True, related_name="reports")
+    reason = models.TextField(max_length=500)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.OPEN)
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name="resolved_discussion_reports"
+    )
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(Q(post__isnull=False, reply__isnull=True) | Q(post__isnull=True, reply__isnull=False)),
+                name="discussion_report_one_target",
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "post"], condition=Q(post__isnull=False), name="one_report_per_member_post"
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "reply"], condition=Q(reply__isnull=False), name="one_report_per_member_reply"
+            ),
+        ]
+
+
+class PostingSuspension(models.Model):
+    member = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="posting_suspension")
+    is_suspended = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ModerationAction(models.Model):
+    class Kind(models.TextChoices):
+        DISMISS = "dismiss", "Report dismissed"
+        HIDE_POST = "hide_post", "Post hidden"
+        HIDE_REPLY = "hide_reply", "Reply hidden"
+        RESTORE_POST = "restore_post", "Post restored"
+        RESTORE_REPLY = "restore_reply", "Reply restored"
+        SUSPEND = "suspend", "Posting suspended"
+        RESTORE_MEMBER = "restore_member", "Posting restored"
+
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="moderation_actions")
+    report = models.ForeignKey(DiscussionReport, on_delete=models.PROTECT, null=True, blank=True, related_name="actions")
+    post = models.ForeignKey(DiscussionPost, on_delete=models.PROTECT, null=True, blank=True)
+    reply = models.ForeignKey(DiscussionReply, on_delete=models.PROTECT, null=True, blank=True)
+    member = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    reason = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Discussion moderation | Crag Commune{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Owner tools</p><h1>Moderation</h1><p>Reports and reasons here are private. Check official access sources before acting on an access claim.</p></div></section>
+<section class="moderation-section"><h2>Open reports</h2>
+  {% for report in reports %}
+    <article class="moderation-item">
+      <p><strong>{% if report.post %}Post: {{ report.post.title }}{% else %}Reply to: {{ report.reply.post.title }}{% endif %}</strong></p>
+      <p class="small-note">Reported by {{ report.reporter.username }} · {{ report.created_at|date:"M j, Y · g:i A" }}</p>
+      <p>{{ report.reason|linebreaksbr }}</p>
+      <form method="post" action="{% url 'discussion:moderate_report' report.pk %}">{% csrf_token %}
+        <label for="decision-{{ report.pk }}">Decision</label><select id="decision-{{ report.pk }}" name="decision"><option value="dismiss">Dismiss report</option><option value="hide">Hide content</option><option value="suspend">Suspend author from posting</option></select>
+        <label for="decision-reason-{{ report.pk }}">Reason for audit</label><textarea id="decision-reason-{{ report.pk }}" name="reason" maxlength="500" required rows="2"></textarea>
+        <button type="submit" class="secondary-button">Record decision</button>
+      </form>
+    </article>
+  {% empty %}<p>No open reports.</p>{% endfor %}
+</section>
+<section class="moderation-section"><h2>Hidden posts</h2>
+  {% for post in hidden_posts %}<div class="moderation-item"><p>{{ post.title }} · {{ post.author.username }}</p><form method="post" action="{% url 'discussion:restore_post' post.pk %}">{% csrf_token %}<label for="post-reason-{{ post.pk }}">Reason to restore</label><input id="post-reason-{{ post.pk }}" name="reason" maxlength="500" required><button class="secondary-button" type="submit">Restore post</button></form></div>{% empty %}<p>None.</p>{% endfor %}
+</section>
+<section class="moderation-section"><h2>Hidden replies</h2>
+  {% for reply in hidden_replies %}<div class="moderation-item"><p>Reply to {{ reply.post.title }} · {{ reply.author.username }}</p><form method="post" action="{% url 'discussion:restore_reply' reply.pk %}">{% csrf_token %}<label for="reply-reason-{{ reply.pk }}">Reason to restore</label><input id="reply-reason-{{ reply.pk }}" name="reason" maxlength="500" required><button class="secondary-button" type="submit">Restore reply</button></form></div>{% empty %}<p>None.</p>{% endfor %}
+</section>
+<section class="moderation-section"><h2>Suspended from posting</h2>
+  {% for item in suspensions %}<div class="moderation-item"><p>{{ item.member.username }}</p><form method="post" action="{% url 'discussion:restore_account' item.member_id %}">{% csrf_token %}<label for="member-reason-{{ item.member_id }}">Reason to restore</label><input id="member-reason-{{ item.member_id }}" name="reason" maxlength="500" required><button class="secondary-button" type="submit">Restore posting</button></form></div>{% empty %}<p>None.</p>{% endfor %}
+</section>
+<section class="moderation-section"><h2>Recent actions</h2><ul>{% for action in actions %}<li>{{ action.created_at|date:"M j, Y · g:i A" }} · {{ action.actor.username }} · {{ action.get_kind_display }} · {{ action.reason }}</li>{% empty %}<li>No actions yet.</li>{% endfor %}</ul></section>
+{% endblock %}

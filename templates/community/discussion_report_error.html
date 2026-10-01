@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Check your submission | Crag Commune{% endblock %}
+{% block content %}
+<section class="form-card"><h1>Check your submission.</h1>{% include "accounts/form_fields.html" with form=form %}<p><a href="{% url 'discussion:index' %}">Back to discussions</a></p></section>
+{% endblock %}

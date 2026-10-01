@@ -6,6 +6,11 @@
   <h1>{{ post.title }}</h1>
   <p class="small-note">By <a href="{% url 'accounts:public_profile' post.author.username %}">{{ post.author.username }}</a></p>
   <div class="discussion-body">{{ post.body|linebreaksbr }}</div>
+  {% if user.is_authenticated and user.pk != post.author_id %}
+    <details class="discussion-report"><summary>Report this post</summary>
+      <form method="post" action="{% url 'discussion:report_post' post.pk %}">{% csrf_token %}<label for="report-post-{{ post.pk }}">Reason for reporting</label><textarea id="report-post-{{ post.pk }}" name="reason" maxlength="500" required rows="3"></textarea><button class="secondary-button" type="submit">Send report</button></form>
+    </details>
+  {% endif %}
 </article>
 <section class="discussion-replies">
   <h2>Replies</h2>
@@ -13,11 +18,16 @@
     <article class="discussion-reply">
       <p class="small-note"><a href="{% url 'accounts:public_profile' item.author.username %}">{{ item.author.username }}</a> · {{ item.created_at|date:"M j, Y · g:i A" }}</p>
       <div class="discussion-body">{{ item.body|linebreaksbr }}</div>
+      {% if user.is_authenticated and user.pk != item.author_id %}
+        <details class="discussion-report"><summary>Report this reply</summary>
+          <form method="post" action="{% url 'discussion:report_reply' post.pk item.pk %}">{% csrf_token %}<label for="report-reply-{{ item.pk }}">Reason for reporting</label><textarea id="report-reply-{{ item.pk }}" name="reason" maxlength="500" required rows="3"></textarea><button class="secondary-button" type="submit">Send report</button></form>
+        </details>
+      {% endif %}
     </article>
   {% empty %}<p>No replies yet.</p>{% endfor %}
-  {% if user.is_authenticated %}
+  {% if can_post %}
     <div class="form-card discussion-reply-form"><h3>Add a reply</h3><form method="post" action="{% url 'discussion:reply' post.pk %}">{% csrf_token %}{% include "accounts/form_fields.html" with form=reply_form %}<button class="button" type="submit">Reply</button></form></div>
-  {% else %}<p><a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a> to reply.</p>{% endif %}
+  {% elif not user.is_authenticated %}<p><a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a> to reply.</p>{% else %}<p class="small-note">Your account cannot reply right now.</p>{% endif %}
 </section>
 <p class="form-foot"><a href="{% url 'discussion:index' %}">All discussions</a></p>
 {% endblock %}
