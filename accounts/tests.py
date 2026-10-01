@@ -22,10 +22,12 @@ class AccountTests(TestCase):
             "email": "private@example.test",
             "password1": "A-long-unique-test-password-829!",
             "password2": "A-long-unique-test-password-829!",
+            "age_eligible": "on",
         })
         self.assertRedirects(response, reverse("accounts:me"))
         member = Member.objects.get(username="GraniteGuest")
         self.assertEqual(member.email, "private@example.test")
+        self.assertIsNotNone(member.age_eligible_confirmed_at)
         self.client.post(reverse("accounts:logout"))
         public = self.client.get(reverse("accounts:public_profile", args=["graniteguest"]))
         self.assertEqual(public.status_code, 200)
@@ -38,6 +40,7 @@ class AccountTests(TestCase):
             "username": "graniteguest",
             "password1": "Another-long-test-password-428!",
             "password2": "Another-long-test-password-428!",
+            "age_eligible": "on",
         })
         self.assertContains(response, "already in use")
         self.assertEqual(Member.objects.count(), 1)
@@ -48,6 +51,7 @@ class AccountTests(TestCase):
             "username": "Grant V",
             "password1": password,
             "password2": password,
+            "age_eligible": "on",
         })
         self.assertRedirects(response, reverse("accounts:me"))
         self.assertTrue(Member.objects.filter(username="Grant V").exists())
@@ -64,9 +68,26 @@ class AccountTests(TestCase):
                     "username": name,
                     "password1": "A-long-unique-test-password-829!",
                     "password2": "A-long-unique-test-password-829!",
+                    "age_eligible": "on",
                 })
                 self.assertContains(response, "Use letters, digits")
         self.assertEqual(Member.objects.count(), 0)
+
+    def test_signup_requires_age_confirmation_without_collecting_birth_date(self):
+        response = self.client.get(reverse("accounts:signup"))
+        self.assertContains(response, "at least 13 years old")
+        self.assertNotContains(response, "date of birth")
+        payload = {
+            "username": "NewMember", "password1": "A-long-unique-test-password-829!",
+            "password2": "A-long-unique-test-password-829!",
+        }
+        rejected = self.client.post(reverse("accounts:signup"), payload)
+        self.assertContains(rejected, "This field is required")
+        self.assertFalse(Member.objects.filter(username="NewMember").exists())
+        self.assertFalse(rejected.wsgi_request.user.is_authenticated)
+        existing = Member.objects.create_user(username="ExistingMember", password="A-long-unique-test-password-829!")
+        self.assertIsNone(existing.age_eligible_confirmed_at)
+        self.assertTrue(self.client.login(username="ExistingMember", password="A-long-unique-test-password-829!"))
 
     def test_database_rejects_case_insensitive_duplicate(self):
         Member.objects.create_user(username="GraniteGuest", password="A-long-unique-test-password-829!")

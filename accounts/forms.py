@@ -1,10 +1,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.utils import timezone
 
 from .models import Member
 
 
 class SignupForm(UserCreationForm):
+    age_eligible = forms.BooleanField(label="I confirm that I am at least 13 years old.")
+
     class Meta(UserCreationForm.Meta):
         model = Member
         fields = ("username", "email")
@@ -19,6 +22,13 @@ class SignupForm(UserCreationForm):
         if Member.objects.filter(username__iexact=username).exists():
             raise forms.ValidationError("This public name is already in use.")
         return username
+
+    def save(self, commit=True):
+        member = super().save(commit=False)
+        member.age_eligible_confirmed_at = timezone.now()
+        if commit:
+            member.save()
+        return member
 
 
 class ProfileForm(forms.ModelForm):
