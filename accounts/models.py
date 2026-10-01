@@ -1,10 +1,24 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Lower
 
 
 class Member(AbstractUser):
     # Public usernames are pseudonyms. Real-name fields are intentionally absent.
+    username = models.CharField(
+        "username",
+        max_length=150,
+        unique=True,
+        help_text="Required. 150 characters or fewer. Letters, digits, spaces and @/./+/-/_ only.",
+        validators=[
+            RegexValidator(
+                regex=r"^[\w.@+-]+(?: [\w.@+-]+)*\Z",
+                message="Use letters, digits, @/./+/-/_ and single spaces between words.",
+            )
+        ],
+        error_messages={"unique": "A user with that username already exists."},
+    )
     first_name = None
     last_name = None
     bio = models.CharField(max_length=280, blank=True)

@@ -10,7 +10,7 @@ class SignupForm(UserCreationForm):
         fields = ("username", "email")
         labels = {"username": "Public name", "email": "Email (private, optional)"}
         help_texts = {
-            "username": "Choose a name other climbers can see. It does not need to be your real name.",
+            "username": "Choose a name other climbers can see. Spaces are welcome; it does not need to be your real name.",
             "email": "Not shown on your profile. Email recovery is not available yet.",
         }
 
