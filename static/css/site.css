@@ -354,3 +354,9 @@ nav {
 .discussion-replies { max-width:800px; margin-top:3rem }
 .discussion-reply { border-top:1px solid var(--line); padding:1.2rem 0 }
 .discussion-reply-form { margin-top:2rem; max-width:640px }
+.discussion-report { margin-top:1.3rem; color:var(--muted) }
+.discussion-report summary { cursor:pointer; font-weight:700 }
+.discussion-report form,.moderation-item form { display:grid; gap:.6rem; margin-top:.75rem; max-width:520px }
+.discussion-report textarea,.moderation-item textarea,.moderation-item input,.moderation-item select { width:100%; border:1px solid #83999a; border-radius:3px; padding:.7rem .75rem; font:inherit }
+.moderation-section { max-width:850px; margin:2.5rem 0 }
+.moderation-item { border-top:1px solid var(--line); padding:1.3rem 0; overflow-wrap:anywhere }

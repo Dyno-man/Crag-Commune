@@ -17,7 +17,7 @@ The account scaffold uses a custom user model. Start it with a fresh local datab
 
 The local outing board is at `/outings/`. Hosts can post a dated outing, accept or decline requests, edit an open outing, cancel an outing, and keep meetup details visible to accepted members. Accepted members see change and cancellation notices at `/outings/notices/`; each notified member can review the changes made while they were accepted. Outings do not provide reviewed route, trail, or access guidance. Abuse limits and a production-ready moderation flow remain open work.
 
-The discussion code has four seeded categories, public reading, member posts and flat replies, and basic search. **Discussion is closed by default** (`DISCUSSION_ENABLED = False` in settings) until the community notice in #28, reporting and moderation in #5, and posting limits are approved and tested. All discussion routes return 404 while closed, including POST routes. The database migration adds only the four category names; it contains no member content.
+The discussion code has four seeded categories, public reading, member posts and flat replies, basic search, a private owner report queue, moderation actions, and posting suspensions. **Discussion is closed by default** (`DISCUSSION_ENABLED = False` in settings) until the community notice in #28, a private report channel, audit retention, member blocking, and posting limits are approved and tested. All discussion routes return 404 while closed, including POST routes. The database migration adds only the four category names; it contains no member content.
 
 ## Start here
 
