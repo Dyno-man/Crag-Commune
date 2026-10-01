@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 
+from .blocks import blocked_between, lock_member_pair
 from .models import Outing, OutingNotice, OutingRevision, Participation
 
 
@@ -27,11 +28,14 @@ def request_to_join(outing_id, member):
     outing = Outing.objects.select_for_update().get(pk=outing_id)
     if outing.status != Outing.Status.OPEN or member.pk == outing.host_id:
         raise ParticipationError("This outing is not available to join.")
-    participation, created = Participation.objects.get_or_create(
-        outing=outing, member=member, defaults={"status": Participation.Status.REQUESTED}
-    )
-    if not created and participation.status != Participation.Status.WITHDRAWN:
+    lock_member_pair(outing.host_id, member.pk)
+    participation = Participation.objects.filter(outing=outing, member=member).first()
+    if participation and participation.status != Participation.Status.WITHDRAWN:
         return participation
+    if blocked_between(outing.host_id, member.pk):
+        raise ParticipationError("A member block prevents this join request.")
+    if participation is None:
+        participation = Participation(outing=outing, member=member)
     if outing.spaces_left() == 0:
         status = Participation.Status.WAITLISTED
     elif outing.join_policy == Outing.JoinPolicy.OPEN:
@@ -39,7 +43,10 @@ def request_to_join(outing_id, member):
     else:
         status = Participation.Status.REQUESTED
     participation.status = status
-    participation.save(update_fields=["status", "updated_at"])
+    if participation.pk:
+        participation.save(update_fields=["status", "updated_at"])
+    else:
+        participation.save()
     return participation
 
 
@@ -53,6 +60,10 @@ def host_decide(outing_id, participation_id, host, accept):
         raise ParticipationError("This request has already been handled.")
     if accept and outing.spaces_left() == 0:
         raise ParticipationError("The outing is full.")
+    if accept:
+        lock_member_pair(outing.host_id, participation.member_id)
+        if blocked_between(outing.host_id, participation.member_id):
+            raise ParticipationError("A member block prevents accepting this request.")
     participation.status = Participation.Status.ACCEPTED if accept else Participation.Status.DECLINED
     participation.save(update_fields=["status", "updated_at"])
     return participation

@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import ProfileForm, SignupForm
 from .models import Member
+from community.models import MemberBlock
 
 
 def signup(request):
@@ -28,4 +29,8 @@ def me(request):
 
 def public_profile(request, username):
     member = get_object_or_404(Member, username__iexact=username, is_active=True)
-    return render(request, "accounts/public_profile.html", {"member": member})
+    can_block = request.user.is_authenticated and request.user.pk != member.pk
+    is_blocked = can_block and MemberBlock.objects.filter(blocker=request.user, blocked=member).exists()
+    return render(request, "accounts/public_profile.html", {
+        "member": member, "can_block": can_block, "is_blocked": is_blocked,
+    })

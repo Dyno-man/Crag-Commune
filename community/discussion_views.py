@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .discussion_forms import DiscussionPostForm, DiscussionReplyForm, ModerationDecisionForm, ModerationReasonForm, ReportForm
+from .blocks import blocked_member_ids
 from .models import DiscussionCategory, DiscussionPost, DiscussionReply, DiscussionReport, ModerationAction, PostingSuspension
 from .moderation import ModerationError, can_post, decide_report, require_owner, restore_content, restore_member, submit_report
 
@@ -24,12 +25,20 @@ def discussion_open(view):
     return guarded
 
 
+def visible_posts(user):
+    return DiscussionPost.objects.filter(is_hidden=False).exclude(author_id__in=blocked_member_ids(user))
+
+
+def visible_replies(post, user):
+    return post.replies.filter(is_hidden=False).exclude(author_id__in=blocked_member_ids(user)).select_related("author")
+
+
 @discussion_open
 def index(request):
     categories = DiscussionCategory.objects.all()
     selected = request.GET.get("category", "")
     query = request.GET.get("q", "").strip()[:100]
-    posts = DiscussionPost.objects.filter(is_hidden=False).select_related("author", "category")
+    posts = visible_posts(request.user).select_related("author", "category")
     if selected:
         get_object_or_404(categories, slug=selected)
         posts = posts.filter(category__slug=selected)
@@ -61,8 +70,8 @@ def create(request):
 
 @discussion_open
 def detail(request, pk):
-    post = get_object_or_404(DiscussionPost.objects.filter(is_hidden=False).select_related("author", "category"), pk=pk)
-    replies = post.replies.filter(is_hidden=False).select_related("author")
+    post = get_object_or_404(visible_posts(request.user).select_related("author", "category"), pk=pk)
+    replies = visible_replies(post, request.user)
     return render(request, "community/discussion_detail.html", {
         "post": post, "replies": replies, "reply_form": DiscussionReplyForm(), "can_post": can_post(request.user),
     })
@@ -74,7 +83,7 @@ def detail(request, pk):
 def reply(request, pk):
     if not can_post(request.user):
         raise PermissionDenied("Posting is suspended.")
-    post = get_object_or_404(DiscussionPost.objects.filter(is_hidden=False), pk=pk)
+    post = get_object_or_404(visible_posts(request.user), pk=pk)
     form = DiscussionReplyForm(request.POST)
     if form.is_valid():
         response = form.save(commit=False)
@@ -83,7 +92,7 @@ def reply(request, pk):
         response.save()
         return redirect("discussion:detail", pk=post.pk)
     return render(request, "community/discussion_detail.html", {
-        "post": post, "replies": post.replies.filter(is_hidden=False).select_related("author"),
+        "post": post, "replies": visible_replies(post, request.user),
         "reply_form": form, "can_post": True,
     }, status=400)
 
@@ -92,6 +101,7 @@ def reply(request, pk):
 @login_required
 @require_POST
 def report_post(request, pk):
+    get_object_or_404(visible_posts(request.user), pk=pk)
     form = ReportForm(request.POST)
     if form.is_valid():
         try:
@@ -107,7 +117,8 @@ def report_post(request, pk):
 @login_required
 @require_POST
 def report_reply(request, pk, reply_id):
-    reply = get_object_or_404(DiscussionReply.objects.filter(post_id=pk), pk=reply_id)
+    post = get_object_or_404(visible_posts(request.user), pk=pk)
+    reply = get_object_or_404(visible_replies(post, request.user), pk=reply_id)
     form = ReportForm(request.POST)
     if form.is_valid():
         try:

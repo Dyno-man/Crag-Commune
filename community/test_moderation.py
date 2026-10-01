@@ -118,7 +118,10 @@ class ModerationConcurrencyTests(TransactionTestCase):
         owner = Member.objects.create_superuser(username="Owner", password="Long-test-password-129!")
         author = Member.objects.create_user(username="Author", password="Long-test-password-129!")
         reporter = Member.objects.create_user(username="Reporter", password="Long-test-password-129!")
-        category = DiscussionCategory.objects.get(slug="local-questions")
+        # Earlier TransactionTestCase classes flush migration seed rows.
+        category, _ = DiscussionCategory.objects.get_or_create(
+            slug="local-questions", defaults={"name": "Local questions"}
+        )
         post = DiscussionPost.objects.create(category=category, author=author, title="Fictional", body="Fictional")
         report = DiscussionReport.objects.create(reporter=reporter, post=post, reason="Review")
         barrier = Barrier(2)
