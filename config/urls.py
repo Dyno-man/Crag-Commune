@@ -16,4 +16,5 @@ urlpatterns = [
     path("health/", health, name="health"),
     path("accounts/", include("accounts.urls")),
     path("outings/", include("community.urls")),
+    path("discussions/", include("community.discussion_urls")),
 ]

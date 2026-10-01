@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | Crag Commune{% endblock %}
+{% block content %}
+<article class="outing-detail discussion-post">
+  <p class="eyebrow">{{ post.category.name }} · {{ post.created_at|date:"M j, Y · g:i A" }}</p>
+  <h1>{{ post.title }}</h1>
+  <p class="small-note">By <a href="{% url 'accounts:public_profile' post.author.username %}">{{ post.author.username }}</a></p>
+  <div class="discussion-body">{{ post.body|linebreaksbr }}</div>
+</article>
+<section class="discussion-replies">
+  <h2>Replies</h2>
+  {% for item in replies %}
+    <article class="discussion-reply">
+      <p class="small-note"><a href="{% url 'accounts:public_profile' item.author.username %}">{{ item.author.username }}</a> · {{ item.created_at|date:"M j, Y · g:i A" }}</p>
+      <div class="discussion-body">{{ item.body|linebreaksbr }}</div>
+    </article>
+  {% empty %}<p>No replies yet.</p>{% endfor %}
+  {% if user.is_authenticated %}
+    <div class="form-card discussion-reply-form"><h3>Add a reply</h3><form method="post" action="{% url 'discussion:reply' post.pk %}">{% csrf_token %}{% include "accounts/form_fields.html" with form=reply_form %}<button class="button" type="submit">Reply</button></form></div>
+  {% else %}<p><a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Sign in</a> to reply.</p>{% endif %}
+</section>
+<p class="form-foot"><a href="{% url 'discussion:index' %}">All discussions</a></p>
+{% endblock %}
