@@ -23,6 +23,7 @@ class Member(AbstractUser):
     last_name = None
     bio = models.CharField(max_length=280, blank=True)
     home_region = models.CharField(max_length=80, blank=True)
+    age_eligible_confirmed_at = models.DateTimeField(null=True, blank=True)
     REQUIRED_FIELDS = []
 
     class Meta:
