@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .forms import parse_local_time
-from .models import Outing, OutingNotice, Participation
+from .models import Outing, OutingNotice, OutingRevision, Participation
 from .services import ParticipationError, cancel_outing, host_decide, request_to_join
 
 
@@ -169,6 +169,78 @@ class OutingViewTests(TestCase):
         self.assertFalse(OutingNotice.objects.filter(outing=self.outing, recipient=self.guest).exists())
         self.assertNotContains(self.client.get(reverse("community:notices")), self.outing.title)
         self.assertNotContains(self.client.get(reverse("community:detail", args=[self.outing.pk])), "Private cancellation note")
+
+    def edit_payload(self, **overrides):
+        start = self.outing.starts_at.astimezone(ZoneInfo("America/New_York"))
+        payload = {
+            "title": self.outing.title,
+            "description": self.outing.description,
+            "start_local": start.strftime("%Y-%m-%dT%H:%M"),
+            "end_local": (start + timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M"),
+            "capacity": self.outing.capacity,
+            "join_policy": self.outing.join_policy,
+            "private_meetup": self.outing.private_meetup,
+            "version": self.outing.version,
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_host_edit_notifies_accepted_members_and_keeps_history_private(self):
+        pending = Member.objects.create_user(username="Pending", password="Long-test-password-129!")
+        Participation.objects.create(outing=self.outing, member=self.guest, status=Participation.Status.ACCEPTED)
+        Participation.objects.create(outing=self.outing, member=pending, status=Participation.Status.REQUESTED)
+        edit_url = reverse("community:edit", args=[self.outing.pk])
+        detail_url = reverse("community:detail", args=[self.outing.pk])
+        self.client.force_login(self.guest)
+        self.assertEqual(self.client.get(edit_url).status_code, 403)
+        self.assertEqual(self.client.post(edit_url, self.edit_payload(title="New title")).status_code, 403)
+
+        self.client.force_login(self.host)
+        form = self.client.get(edit_url)
+        self.assertContains(form, 'name="version"')
+        self.assertContains(form, 'name="start_local"')
+        change = self.edit_payload(title="New title", private_meetup="New private clue")
+        rejected = self.client.post(edit_url, change)
+        self.assertContains(rejected, "Acknowledge that accepted members")
+        self.assertEqual(OutingRevision.objects.count(), 0)
+        change["acknowledge_change"] = "on"
+        self.assertRedirects(self.client.post(edit_url, change), detail_url)
+        self.outing.refresh_from_db()
+        self.assertEqual(self.outing.version, 2)
+        self.assertEqual(self.outing.title, "New title")
+        self.assertEqual(OutingRevision.objects.count(), 1)
+        self.assertEqual(OutingNotice.objects.filter(recipient=self.guest, kind=OutingNotice.Kind.CHANGED).count(), 1)
+        self.assertFalse(OutingNotice.objects.filter(recipient=pending).exists())
+        self.assertContains(self.client.get(detail_url), "New private clue")
+
+        self.client.force_login(self.guest)
+        self.assertContains(self.client.get(reverse("community:notices")), "Outing changed")
+        accepted_detail = self.client.get(detail_url)
+        self.assertContains(accepted_detail, "Change history")
+        self.assertContains(accepted_detail, "Private meeting clue")
+        self.assertContains(accepted_detail, "New private clue")
+        self.client.force_login(pending)
+        self.assertNotContains(self.client.get(detail_url), "New private clue")
+        self.assertNotContains(self.client.get(detail_url), "Private meeting clue")
+        self.assertNotContains(self.client.get(detail_url), "Change history")
+        self.client.logout()
+        self.assertNotContains(self.client.get(detail_url), "Change history")
+        self.assertNotContains(self.client.get(detail_url), "New private clue")
+
+    def test_edit_rejects_stale_version_and_capacity_below_accepted_count(self):
+        Participation.objects.create(outing=self.outing, member=self.guest, status=Participation.Status.ACCEPTED)
+        self.client.force_login(self.host)
+        edit_url = reverse("community:edit", args=[self.outing.pk])
+        too_small = self.client.post(edit_url, self.edit_payload(capacity=1, acknowledge_change="on"))
+        self.assertContains(too_small, "Capacity cannot be less")
+        self.assertEqual(OutingRevision.objects.count(), 0)
+        self.client.post(edit_url, self.edit_payload(title="First edit", acknowledge_change="on"))
+        stale = self.client.post(edit_url, self.edit_payload(title="Stale edit", acknowledge_change="on"))
+        self.assertContains(stale, "changed while you were editing")
+        self.outing.refresh_from_db()
+        self.assertEqual(self.outing.title, "First edit")
+        self.assertEqual(OutingRevision.objects.count(), 1)
+        self.assertEqual(OutingNotice.objects.filter(recipient=self.guest, kind=OutingNotice.Kind.CHANGED).count(), 1)
 
 
 class CapacityConcurrencyTests(TransactionTestCase):
