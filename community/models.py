@@ -4,6 +4,18 @@ from django.db import models
 from django.db.models import F, Q
 
 
+class MemberBlock(models.Model):
+    blocker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocks_made")
+    blocked = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocks_received")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["blocker", "blocked"], name="one_member_block_per_pair"),
+            models.CheckConstraint(condition=~Q(blocker=F("blocked")), name="member_cannot_block_self"),
+        ]
+
+
 class Outing(models.Model):
     class JoinPolicy(models.TextChoices):
         REQUEST = "request", "Host approval"

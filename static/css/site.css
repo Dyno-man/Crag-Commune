@@ -244,6 +244,15 @@ h2 {
   padding:clamp(1.5rem,5vw,3rem);
   max-width:760px
 }
+.profile-block-control {
+  border-top:1px solid var(--line);
+  margin-top:1.5rem;
+  padding-top:1.5rem
+}
+.profile-block-control .small-note {
+  line-height:1.5;
+  margin-bottom:0
+}
 .profile-region {
   font-weight:750;
   color:var(--deep)
