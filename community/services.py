@@ -2,11 +2,24 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Outing, OutingNotice, Participation
+from .models import Outing, OutingNotice, OutingRevision, Participation
 
 
 class ParticipationError(Exception):
     pass
+
+
+class OutingEditError(Exception):
+    pass
+
+
+EDITABLE_OUTING_FIELDS = (
+    "title", "description", "starts_at", "ends_at", "capacity", "join_policy", "private_meetup"
+)
+
+
+def revision_value(value):
+    return value.isoformat() if hasattr(value, "isoformat") else value
 
 
 @transaction.atomic
@@ -73,3 +86,39 @@ def cancel_outing(outing_id, host, note=""):
         [OutingNotice(outing=outing, recipient_id=recipient_id, kind=OutingNotice.Kind.CANCELLED) for recipient_id in recipients]
     )
     return True
+
+
+@transaction.atomic
+def edit_outing(outing_id, host, candidate, expected_version, acknowledged):
+    outing = Outing.objects.select_for_update().get(pk=outing_id)
+    if outing.host_id != host.pk:
+        raise PermissionDenied("Only the host can edit this outing.")
+    if outing.status != Outing.Status.OPEN:
+        raise OutingEditError("Cancelled outings cannot be edited.")
+    if outing.version != expected_version:
+        raise OutingEditError("This outing changed while you were editing it. Reload the page and try again.")
+
+    accepted = list(outing.participations.filter(status=Participation.Status.ACCEPTED).values_list("member_id", flat=True))
+    if candidate.capacity < len(accepted) + 1:
+        raise OutingEditError("Capacity cannot be less than the host and accepted members already attending.")
+
+    changes = {}
+    for field in EDITABLE_OUTING_FIELDS:
+        before = getattr(outing, field)
+        after = getattr(candidate, field)
+        if before != after:
+            changes[field] = {"before": revision_value(before), "after": revision_value(after)}
+    if not changes:
+        return None
+    if accepted and not acknowledged:
+        raise OutingEditError("Acknowledge that accepted members will be notified before saving these changes.")
+
+    for field in changes:
+        setattr(outing, field, getattr(candidate, field))
+    outing.version += 1
+    outing.save(update_fields=[*changes, "version"])
+    revision = OutingRevision.objects.create(outing=outing, changed_by=host, changes=changes)
+    OutingNotice.objects.bulk_create(
+        [OutingNotice(outing=outing, recipient_id=member_id, revision=revision, kind=OutingNotice.Kind.CHANGED) for member_id in accepted]
+    )
+    return revision

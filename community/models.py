@@ -29,6 +29,7 @@ class Outing(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="cancelled_outings"
     )
     cancellation_note = models.CharField(max_length=280, blank=True)
+    version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -72,12 +73,24 @@ class Participation(models.Model):
         constraints = [models.UniqueConstraint(fields=["outing", "member"], name="one_participation_per_member")]
 
 
+class OutingRevision(models.Model):
+    outing = models.ForeignKey(Outing, on_delete=models.CASCADE, related_name="revisions")
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="outing_revisions")
+    changes = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+
 class OutingNotice(models.Model):
     class Kind(models.TextChoices):
         CANCELLED = "cancelled", "Outing cancelled"
+        CHANGED = "changed", "Outing changed"
 
     outing = models.ForeignKey(Outing, on_delete=models.CASCADE, related_name="notices")
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="outing_notices")
+    revision = models.ForeignKey(OutingRevision, null=True, blank=True, on_delete=models.CASCADE, related_name="notices")
     kind = models.CharField(max_length=16, choices=Kind.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -88,5 +101,10 @@ class OutingNotice(models.Model):
                 fields=["outing", "recipient"],
                 condition=Q(kind="cancelled"),
                 name="one_cancellation_notice_per_member",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["revision", "recipient"],
+                condition=Q(kind="changed"),
+                name="one_change_notice_per_member",
+            ),
         ]

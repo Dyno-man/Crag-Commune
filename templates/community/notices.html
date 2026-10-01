@@ -11,7 +11,7 @@
     <article class="outing-card">
       <p class="eyebrow">{{ notice.created_at|date:"M j, Y · g:i A" }} ET</p>
       <h2><a href="{% url 'community:detail' notice.outing.pk %}">{{ notice.outing.title }}</a></h2>
-      <p>{{ notice.get_kind_display }}. Open the outing to see any note from the host.</p>
+      <p>{{ notice.get_kind_display }}. Open the outing to {% if notice.kind == 'changed' %}review what changed{% else %}see any note from the host{% endif %}.</p>
     </article>
   {% empty %}
     <div class="empty-state"><h2>No notices yet.</h2><p>Updates to outings you join will appear here.</p></div>
